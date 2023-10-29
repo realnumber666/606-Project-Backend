@@ -39,6 +39,7 @@ class TransactionRoute(BaseHTTPRequestHandler):
             response = TransactionController.get_monthly_budget(year, month, user_id)
 
             self._send_response(200, response)
+        
         else:
             self._send_response(404, {'error': 'Not Found'})
 
@@ -55,7 +56,30 @@ class TransactionRoute(BaseHTTPRequestHandler):
             self._send_response(404, {'error': 'Not Found'})
 
     def do_POST(self):
-        if self.path == '/expenses':
+        if self.path == '/login':
+            content_length = int(self.headers['Content-Length'])
+            request_body = self.rfile.read(content_length)
+            data = json.loads(request_body.decode('utf-8'))
+
+            username = data.get('username')
+            password = data.get('password')
+
+            response = TransactionController.login(username, password)
+            self._send_response(response['status'], response)
+        
+        elif self.path == '/signup':
+            content_length = int(self.headers['Content-Length'])
+            request_body = self.rfile.read(content_length)
+            data = json.loads(request_body.decode('utf-8'))
+
+            username = data.get('username')
+            password = data.get('password')
+            fullName = data.get('fullName')
+
+            response = TransactionController.signup(username, password,fullName)
+            self._send_response(response['status'], response)
+
+        elif self.path == '/expenses':
             content_length = int(self.headers['Content-Length'])
             request_body = self.rfile.read(content_length)
             data = json.loads(request_body.decode('utf-8'))
@@ -113,3 +137,10 @@ class TransactionRoute(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
+
+        
+
+
+
+
+
