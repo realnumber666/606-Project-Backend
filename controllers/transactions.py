@@ -3,6 +3,48 @@ from models.transactions import *
 
 
 class TransactionController:
+
+    @staticmethod
+    def signup(username, password, fullName):
+        try:
+            # Check if the username already exists in the database
+            cursor.execute('SELECT userId FROM Users WHERE username = ?', (username,))
+            existing_user = cursor.fetchone()
+            if existing_user:
+                return {
+                    'status': 202,
+                    'data': {'error_msg': 'Username already exists'}
+                }
+
+            # Get the biggest userId in the database and increment by 1
+            cursor.execute('SELECT MAX(userId) FROM Users')
+            max_user_id = cursor.fetchone()[0]
+            if max_user_id is None:
+                max_user_id = 1
+            else:
+                max_user_id += 1
+
+            # Insert the new user into the Users table
+            try:
+                cursor.execute('INSERT INTO Users (UserId, username, password, FullName) VALUES (?, ?, ?, ?)',
+                            (max_user_id, username, password, fullName))
+                conn.commit()
+            except Exception as e:
+                # Log the exception or print it for debugging
+                print(f"Error inserting user: {str(e)}")
+                conn.rollback()
+
+
+            return {
+                'status': 200,
+                'data': {}
+            }
+        except Exception as e:
+            return {
+                'status': 500,
+                'data': {'error_msg': str(e)}
+            }
+
     @staticmethod
     def get_expenses(year=None, month=None):
         transactions = get_expenses(year, month)
@@ -35,6 +77,24 @@ class TransactionController:
             'status': 200,
             'data': {}
         }
+    
+    @staticmethod
+    def login(username, password):
+        # Check if the username and password are valid
+        # You should replace this with your actual authentication logic
+        if username == "sampleUser" and password == "samplePassword123":
+            return {
+                'status': 200,
+                'data': {}
+            }
+        else:
+            return {
+                'status': 202,
+                'data': {
+                    'error_msg': 'Invalid username or password'
+                }
+            }
+
 
     @staticmethod
     def delete_expense(record_id):
@@ -71,3 +131,25 @@ class TransactionController:
                 'status': 500,
                 'data': {'error_msg': str(e)}
             }
+        
+    @staticmethod
+    def login(username, password):
+        try:
+            cursor.execute('SELECT * FROM Users WHERE Username = ? AND Password = ?', (username, password))
+            user = cursor.fetchone()
+            if user:
+                return {
+                    'status': 200,
+                    'data': {}
+                }
+            else:
+                return {
+                    'status': 202,
+                    'data': {'error_msg': 'Invalid username or password'}
+                }
+        except Exception as e:
+            return {
+                'status': 500,
+                'data': {'error_msg': str(e)}
+            }
+
