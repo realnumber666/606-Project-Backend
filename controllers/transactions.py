@@ -46,8 +46,8 @@ class TransactionController:
             }
 
     @staticmethod
-    def get_expenses(year=None, month=None):
-        transactions = get_expenses(year, month)
+    def get_expenses(year=None, month=None, user=None):
+        transactions = get_expenses(year, month, user)
 
         # calculate the total amount
         total = sum(transaction[1] for transaction in transactions)
@@ -62,8 +62,8 @@ class TransactionController:
         return response_data
 
     @staticmethod
-    def get_monthly_budget(year, month, user_id):
-        res = get_monthly_budget(year, month, user_id)
+    def get_monthly_budget(year, month, username):
+        res = get_monthly_budget(year, month, username)
 
         return {
             'status': 200,
@@ -71,30 +71,12 @@ class TransactionController:
         }
 
     @staticmethod
-    def add_expense(record_id, amount, description, datetime, category):
-        add_expense(record_id, amount, description, datetime, category)
+    def add_expense(record_id, amount, description, datetime, category, username):
+        add_expense(record_id, amount, description, datetime, category, username)
         return {
             'status': 200,
             'data': {}
         }
-    
-    @staticmethod
-    def login(username, password):
-        # Check if the username and password are valid
-        # You should replace this with your actual authentication logic
-        if username == "sampleUser" and password == "samplePassword123":
-            return {
-                'status': 200,
-                'data': {}
-            }
-        else:
-            return {
-                'status': 202,
-                'data': {
-                    'error_msg': 'Invalid username or password'
-                }
-            }
-
 
     @staticmethod
     def delete_expense(record_id):
@@ -119,9 +101,9 @@ class TransactionController:
             }
 
     @staticmethod
-    def set_monthly_budget(userID, year, month, totalAmount):
+    def set_monthly_budget(username, year, month, totalAmount):
         try:
-            set_monthly_budgets(userID, year, month, totalAmount)
+            set_monthly_budgets(username, year, month, totalAmount)
             return {
                 'status': 200,
                 'data': {'status': 'success', 'message': 'Budget updated successfully'}

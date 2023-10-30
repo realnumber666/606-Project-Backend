@@ -20,12 +20,14 @@ class TransactionRoute(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse(self.path)
         if parsed_path.path == '/expenses':
+            # Get monthly expenses
             query_params = parse_qs(parsed_path.query)
             month = query_params.get('month', [None])[0]
+            user = query_params.get('user', [None])[0]
 
             if month:
                 year, month = month.split('-')
-                response = TransactionController.get_expenses(year, month)
+                response = TransactionController.get_expenses(year, month, user)
             else:
                 response = TransactionController.get_expenses()
 
@@ -33,10 +35,10 @@ class TransactionRoute(BaseHTTPRequestHandler):
         elif parsed_path.path == '/monthly_budget':
             query_params = parse_qs(parsed_path.query)
             month = query_params.get('month', [None])[0]
-            user_id = query_params.get('user_id', [None])[0]
+            username = query_params.get('user', [None])[0]
 
             year, month = month.split('-')
-            response = TransactionController.get_monthly_budget(year, month, user_id)
+            response = TransactionController.get_monthly_budget(year, month, username)
 
             self._send_response(200, response)
         
@@ -89,8 +91,9 @@ class TransactionRoute(BaseHTTPRequestHandler):
             description = data.get('description', '')
             datetime = data.get('datetime')
             category = data.get('category')
+            username = data.get('username')
 
-            response = TransactionController.add_expense(record_id, amount, description, datetime, category)
+            response = TransactionController.add_expense(record_id, amount, description, datetime, category, username)
 
             self._send_response(200, response)
         elif self.path == '/monthly_budget':
@@ -98,16 +101,15 @@ class TransactionRoute(BaseHTTPRequestHandler):
             request_body = self.rfile.read(content_length)
             data = json.loads(request_body.decode('utf-8'))
 
-            userID = data.get('UserID')
+            username = data.get('User')
             year = data.get('Year')
             month = data.get('Month')
             totalAmount = data.get('TotalAmount')
-            response = TransactionController.set_monthly_budget(userID, year, month, totalAmount)
+            response = TransactionController.set_monthly_budget(username, year, month, totalAmount)
 
             self._send_response(200, response)
         else:
             self._send_response(404, {'error': 'Not Found'})
-
 
     def do_PUT(self):
         if self.path.startswith('/expenses/'):
