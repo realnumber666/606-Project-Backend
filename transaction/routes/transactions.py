@@ -1,6 +1,6 @@
 import json
 from http.server import BaseHTTPRequestHandler
-from controllers.transactions import TransactionController
+from transaction.controllers.transactions import TransactionController
 from urllib.parse import urlparse, parse_qs
 
 
@@ -20,7 +20,7 @@ class TransactionRoute(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse(self.path)
         if parsed_path.path == '/expenses':
-            # Get monthly expenses
+            # API Get monthly expenses
             query_params = parse_qs(parsed_path.query)
             month = query_params.get('month', [None])[0]
             user = query_params.get('user', [None])[0]
@@ -33,6 +33,7 @@ class TransactionRoute(BaseHTTPRequestHandler):
 
             self._send_response(200, response)
         elif parsed_path.path == '/monthly_budget':
+            # API Get monthly budget
             query_params = parse_qs(parsed_path.query)
             month = query_params.get('month', [None])[0]
             username = query_params.get('user', [None])[0]
@@ -47,6 +48,7 @@ class TransactionRoute(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         if self.path == '/expense':
+            # API Delete one expenses
             content_length = int(self.headers['Content-Length'])
             request_body = self.rfile.read(content_length)
             data = json.loads(request_body.decode('utf-8'))
@@ -58,45 +60,23 @@ class TransactionRoute(BaseHTTPRequestHandler):
             self._send_response(404, {'error': 'Not Found'})
 
     def do_POST(self):
-        if self.path == '/login':
+        if self.path == '/expenses':
+            # API Add one expense
             content_length = int(self.headers['Content-Length'])
             request_body = self.rfile.read(content_length)
             data = json.loads(request_body.decode('utf-8'))
 
-            username = data.get('username')
-            password = data.get('password')
-
-            response = TransactionController.login(username, password)
-            self._send_response(response['status'], response)
-        
-        elif self.path == '/signup':
-            content_length = int(self.headers['Content-Length'])
-            request_body = self.rfile.read(content_length)
-            data = json.loads(request_body.decode('utf-8'))
-
-            username = data.get('username')
-            password = data.get('password')
-            fullName = data.get('fullName')
-
-            response = TransactionController.signup(username, password,fullName)
-            self._send_response(response['status'], response)
-
-        elif self.path == '/expenses':
-            content_length = int(self.headers['Content-Length'])
-            request_body = self.rfile.read(content_length)
-            data = json.loads(request_body.decode('utf-8'))
-
-            record_id = data.get('record_id')
             amount = data.get('amount')
             description = data.get('description', '')
             datetime = data.get('datetime')
             category = data.get('category')
             username = data.get('username')
 
-            response = TransactionController.add_expense(record_id, amount, description, datetime, category, username)
+            response = TransactionController.add_expense(amount, description, datetime, category, username)
 
             self._send_response(200, response)
         elif self.path == '/monthly_budget':
+            # API Update monthly budget
             content_length = int(self.headers['Content-Length'])
             request_body = self.rfile.read(content_length)
             data = json.loads(request_body.decode('utf-8'))
@@ -112,8 +92,9 @@ class TransactionRoute(BaseHTTPRequestHandler):
             self._send_response(404, {'error': 'Not Found'})
 
     def do_PUT(self):
-        if self.path.startswith('/expenses/'):
-            expenseId = int(self.path.split('/')[-1])
+        if self.path.startswith('/expenses'):
+            # API Update one expenses
+            expenseId = self.path.split('/')[-1]
 
             # Read the request body
             content_length = int(self.headers['Content-Length'])

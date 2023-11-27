@@ -1,10 +1,11 @@
 from http.server import HTTPServer
 from routes.transactions import TransactionRoute
 
+port = 8000
 # create server and set port
-server_address = ('', 8000)
+server_address = ('', port)
 httpd = HTTPServer(server_address, TransactionRoute)
 
 # start HTTP server
-print('Starting server on port 8000...')
+print(f'Starting transaction service on port {port}...')
 httpd.serve_forever()
