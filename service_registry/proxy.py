@@ -1,13 +1,14 @@
 import http.client
 import json
 from enum import Enum
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler
+from urllib.parse import urlparse
 
 USER_SERVICE_HOST = 'localhost'
 USER_SERVICE_PORT = 8001
 
 TRANSACTION_SERVICE_HOST = 'localhost'
-TRANSACTION_SERVICE_PORT = 8001
+TRANSACTION_SERVICE_PORT = 8002
 
 
 class ServiceName(Enum):
@@ -19,6 +20,7 @@ path_to_service = {
     '/login': ServiceName.USER,
     '/signup': ServiceName.USER,
     '/expenses': ServiceName.TRANSACTION,
+    '/expense': ServiceName.TRANSACTION,
     '/monthly_budget': ServiceName.TRANSACTION,
 }
 
@@ -29,13 +31,21 @@ service_to_address = {
 
 
 class ProxyRoute(BaseHTTPRequestHandler):
-    def _forward_request(self, method, path, data):
+    def _forward_request(self, method, path, data=None):
         # Open a connection to the microservice
-        service = path_to_service[path]
+        if method == "GET":
+            parsed_path = urlparse(self.path)
+            mapping_path = parsed_path.path
+        elif method == "PUT":
+            mapping_path = f"/{self.path.split('/')[1]}"
+        else:
+            mapping_path = path
+        service = path_to_service[mapping_path]
         service_host = service_to_address[service][0]
         service_port = service_to_address[service][1]
         connection = http.client.HTTPConnection(service_host, service_port)
 
+        body = json.dumps(data) if data is not None else None
         # Prepare headers
         headers = {'Content-type': 'application/json'}
 
@@ -71,6 +81,26 @@ class ProxyRoute(BaseHTTPRequestHandler):
         status, response_data = self._forward_request(method, self.path, data)
 
         # Send the response back to the client
+        self._send_response(status, response_data)
+
+    def do_GET(self):
+        status, response_data = self._forward_request('GET', self.path)
+        self._send_response(status, response_data)
+
+    def do_DELETE(self):
+        content_length = int(self.headers.get('Content-Length', 0))
+        request_body = self.rfile.read(content_length) if content_length > 0 else '{}'
+        data = json.loads(request_body.decode('utf-8'))
+
+        status, response_data = self._forward_request('DELETE', self.path, data)
+        self._send_response(status, response_data)
+
+    def do_PUT(self):
+        content_length = int(self.headers['Content-Length'])
+        request_body = self.rfile.read(content_length)
+        data = json.loads(request_body.decode('utf-8'))
+
+        status, response_data = self._forward_request('PUT', self.path, data)
         self._send_response(status, response_data)
 
     def do_OPTIONS(self):

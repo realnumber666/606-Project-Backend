@@ -1,7 +1,7 @@
 from http.server import HTTPServer
 from routes.transactions import TransactionRoute
 
-port = 8000
+port = 8002
 # create server and set port
 server_address = ('', port)
 httpd = HTTPServer(server_address, TransactionRoute)

@@ -28,8 +28,7 @@ class TransactionRoute(BaseHTTPRequestHandler):
             if month:
                 year, month = month.split('-')
                 response = TransactionController.get_expenses(year, month, user)
-            else:
-                response = TransactionController.get_expenses()
+
 
             self._send_response(200, response)
         elif parsed_path.path == '/monthly_budget':

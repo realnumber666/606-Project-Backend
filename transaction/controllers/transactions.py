@@ -26,7 +26,7 @@ class TransactionController:
 
     @staticmethod
     def get_monthly_budget(year, month, username):
-        res = get_monthly_budget(year, month, username)
+        res = get_monthly_budget(int(year), int(month), username)
 
         return {
             'status': 200,
