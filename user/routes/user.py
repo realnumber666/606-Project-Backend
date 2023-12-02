@@ -1,7 +1,6 @@
 import json
 from http.server import BaseHTTPRequestHandler
-from user.controllers.user import UserController
-
+from controllers.user import UserController
 
 class UserRoute(BaseHTTPRequestHandler):
     def _send_response(self, status, data=None):

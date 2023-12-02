@@ -1,5 +1,5 @@
 import json
-from ..models.user import signup, login
+from models.user import signup, login
 
 
 class UserController:
