@@ -1,6 +1,6 @@
 import json
 from http.server import BaseHTTPRequestHandler
-from transaction.controllers.transactions import TransactionController
+from controllers.transactions import TransactionController
 from urllib.parse import urlparse, parse_qs
 
 

@@ -1,5 +1,5 @@
 import json
-from transaction.models.transactions import *
+from models.transactions import *
 import datetime as dt
 
 
