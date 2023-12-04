@@ -8,8 +8,8 @@ format_str = "%Y-%m-%d %H:%M"
 
 class TransactionController:
     @staticmethod
-    def get_expenses(year, month, user):
-        transactions = get_expenses(int(year), int(month), user)
+    def get_expenses(year, month, user, category=None):
+        transactions = get_expenses(int(year), int(month), user, category)
         print(transactions)
 
         # calculate the total amount

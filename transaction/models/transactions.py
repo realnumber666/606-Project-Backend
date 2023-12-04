@@ -14,30 +14,53 @@ db = client['expenses_db']
 # Get the collections
 transactions_collection = db['transactions']
 monthly_budget_collection = db['monthly_budget']
+days_of_month = {
+    1: 31,  # January
+    2: 28,  # February (non-leap year)
+    3: 31,  # March
+    4: 30,  # April
+    5: 31,  # May
+    6: 30,  # June
+    7: 31,  # July
+    8: 31,  # August
+    9: 30,  # September
+    10: 31, # October
+    11: 30, # November
+    12: 31  # December
+}
 
 
-def get_expenses(year, month, user):
-    if year and month and user:
-        # Fetch expenses for the given year and month
-        start_date = dt(year, month, 1)
-        end_date = dt(year, month + 1, 1)
-        print(f"get_expenses from {start_date} to {end_date} for {user}")
+
+def get_expenses(year, month, user, category=None):
+    # Fetch expenses for the given year and month
+    start_date = dt(year, month, 1)
+    end_date = dt(year, month, days_of_month[month])
+    print(f"get_expenses from {start_date} to {end_date} for {user} {category}")
+    if category:
         cursor = transactions_collection.find({
             "username": user,
-            "category": "Food",
+            "category": category,
+            "date": {
+                "$gte": start_date,
+                "$lte": end_date
+            }
+        }).sort("date", -1)
+    else:
+        cursor = transactions_collection.find({
+            "username": user,
             "date": {
                 "$gte": start_date,
                 "$lt": end_date
             }
         }).sort("date", -1)
 
-        return list(cursor)
+    return list(cursor)
 
 
 def add_expense(amount, description, datetime, category, username):
     datetime = dt.strptime(datetime, format_str)
     transaction = {
-        "amount": amount,
+        "amount": int(amount),
         "description": description,
         "date": datetime,
         "category": category,

@@ -24,10 +24,11 @@ class TransactionRoute(BaseHTTPRequestHandler):
             query_params = parse_qs(parsed_path.query)
             month = query_params.get('month', [None])[0]
             user = query_params.get('user', [None])[0]
+            category = query_params.get('category', [None])[0]
 
             if month:
                 year, month = month.split('-')
-                response = TransactionController.get_expenses(year, month, user)
+                response = TransactionController.get_expenses(year, month, user, category)
 
 
             self._send_response(200, response)
