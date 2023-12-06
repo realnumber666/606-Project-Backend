@@ -4,16 +4,16 @@ from enum import Enum
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
-USER_SERVICE_HOST = 'localhost'
-USER_SERVICE_PORT = 8001
-
-TRANSACTION_SERVICE_HOST = 'localhost'
-TRANSACTION_SERVICE_PORT = 8002
-
 
 class ServiceName(Enum):
     USER = 1
     TRANSACTION = 2
+
+
+name_to_enum = {
+    "user": ServiceName.USER,
+    "transaction": ServiceName.TRANSACTION
+}
 
 
 path_to_service = {
@@ -25,8 +25,8 @@ path_to_service = {
 }
 
 service_to_address = {
-    ServiceName.USER: [USER_SERVICE_HOST, USER_SERVICE_PORT],
-    ServiceName.TRANSACTION: [TRANSACTION_SERVICE_HOST, TRANSACTION_SERVICE_PORT]
+    ServiceName.USER: [],
+    ServiceName.TRANSACTION: []
 }
 
 
@@ -77,8 +77,11 @@ class ProxyRoute(BaseHTTPRequestHandler):
         request_body = self.rfile.read(content_length)
         data = json.loads(request_body.decode('utf-8'))
 
-        # Forward the request to the microservice and get the response
-        status, response_data = self._forward_request(method, self.path, data)
+        if self.path == '/services/register':
+            status, response_data = self.register_service(data)
+        else:
+            # Forward the request to the microservice and get the response
+            status, response_data = self._forward_request(method, self.path, data)
 
         # Send the response back to the client
         self._send_response(status, response_data)
@@ -109,3 +112,14 @@ class ProxyRoute(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
+
+    def register_service(self, data):
+        serviceName = data.get("serviceName")
+        ip = data.get("ip")
+        port = data.get("port")
+
+        service_to_address[name_to_enum[serviceName]] = [ip, int(port)]
+
+        status, response_data = 200, {}
+
+        return status, response_data
